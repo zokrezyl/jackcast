@@ -6,24 +6,27 @@ import sys
 import os
 import re
 
-from common import DEFAULT_MULTICAST_ADDRESS, DEFAULT_PORT_FOR_AUDIO, DEFAULT_PORT_FOR_MIDI
+from common import DEFAULT_MULTICAST_ADDRESS
+from common import DEFAULT_PORT_FOR_AUDIO, DEFAULT_PORT_FOR_MIDI
 
 
 def lowercase(string):
     return str(string).lower()
 
+
 def snakecase(string):
     string = re.sub(r"[\-\.\s]", '_', str(string))
     if not string:
         return string
-    return lowercase(string[0]) + re.sub(r"[A-Z]", lambda matched: '_' + lowercase(matched.group(0)), string[1:])
+    return lowercase(string[0]) + re.sub(r"[A-Z]",
+            lambda matched: '_' + lowercase(matched.group(0)), string[1:])
+
 
 def spinalcase(string):
     return re.sub(r"_", "-", snakecase(string))
 
 
 class Command:
-    _needs_subcmd = True
     usage = "<undefined>"
     description = "<undefined>"
 
@@ -40,19 +43,18 @@ class Command:
         raise Exception("this method should be defined in the subclass")
 
 
-
 class CommandAudioSender(Command):
-    usage=f"{sys.argv[0]} sender [OPTIONS]"
-    description="Sends jack aaudio over network"
+    usage = f"{sys.argv[0]} sender [OPTIONS]"
+    description = "Sends jack aaudio over network"
 
     def add_subparser(self):
-        self.parser.add_argument('-u', '--unicast', 
-                help="unicast destination IP address (overrides the default multicast)")
-        self.parser.add_argument('-p', '--port', 
-                help=f"UDP port to send to default (default: {DEFAULT_PORT_FOR_AUDIO})", 
+        self.parser.add_argument('-u', '--unicast',
+                help="unicast destination IP address (overrides multicast)")
+        self.parser.add_argument('-p', '--port',
+                help=f"UDP port to send to default (default: {DEFAULT_PORT_FOR_AUDIO})",
                 default=33220)
-        self.parser.add_argument('-m', '--multicast', 
-                help=f"destination multicast IP address (default: {DEFAULT_MULTICAST_ADDRESS})", 
+        self.parser.add_argument('-m', '--multicast',
+                help=f"destination multicast IP address (default: {DEFAULT_MULTICAST_ADDRESS})",
                 default=DEFAULT_MULTICAST_ADDRESS)
 
     def run(self, args):
@@ -60,21 +62,21 @@ class CommandAudioSender(Command):
         JackCastAudioSender().run()
 
 
-
 class CommandAudioReceiver(Command):
-    usage=f"{sys.argv[0]} sender [OPTIONS]"
-    description="Sends jack aaudio over network"
+    usage = f"{sys.argv[0]} sender [OPTIONS]"
+    description = "Sends jack aaudio over network"
 
     def add_subparser(self):
-        self.parser.add_argument('-u', '--unicast', 
-                help="just listen on UDP port, no multicast", 
+        self.parser.add_argument('-u', '--unicast',
+                help="just listen on UDP port, no multicast",
                 action='store_true')
-        self.parser.add_argument('-p', '--port', 
-                help=f"UDP port to listen on (default: {DEFAULT_PORT_FOR_AUDIO})", 
+        self.parser.add_argument('-p', '--port',
+                help=f"UDP port to listen on (default: {DEFAULT_PORT_FOR_AUDIO})",
                 default=33220)
         self.parser.add_argument('-m', '--multicast', 
-                help=f"listen on multicast IP address (default: {DEFAULT_MULTICAST_ADDRESS})", 
+                help=f"listen on multicast IP address (default: {DEFAULT_MULTICAST_ADDRESS})",
                 default=DEFAULT_MULTICAST_ADDRESS)
+
 
     def run(self, args):
         from audio import JackCastAudioReceiver
@@ -82,33 +84,34 @@ class CommandAudioReceiver(Command):
 
 
 class CommandMidiSender(Command):
-    usage=f"{sys.argv[0]} sender [OPTIONS]"
-    description="Sends jack aaudio over network"
+    usage = f"{sys.argv[0]} sender [OPTIONS]"
+    description = "Sends jack aaudio over network"
 
     def add_subparser(self):
-        self.parser.add_argument('-d', '--destination', 
+        self.parser.add_argument('-d', '--destination',
                 help="destination IP address")
-        self.parser.add_argument('-p', '--port', 
-                help="UDP port to send to (default: {DEFAULT_PORT_FOR_MIDI})", 
+        self.parser.add_argument('-p', '--port',
+                help="UDP port to send to (default: {DEFAULT_PORT_FOR_MIDI})",
                 default=DEFAULT_PORT_FOR_MIDI)
-        self.parser.add_argument('-m', '--multicast', 
-                help="destination multicast IP address (default: {DEFAULT_MULTICAST_ADDRESS})", 
+        self.parser.add_argument('-m', '--multicast',
+                help="destination multicast IP address (default: {DEFAULT_MULTICAST_ADDRESS})",
                 default=DEFAULT_MULTICAST_ADDRESS)
 
     def run(self, args):
         from midi import JackCastMidiSender
         JackCastMidiSender().run()
 
+
 class CommandMidiReceiver(Command):
-    usage=f"{sys.argv[0]} midi-sender [OPTIONS]"
-    description="Sends jack aaudio over network"
+    usage = f"{sys.argv[0]} midi-sender [OPTIONS]"
+    description = "Sends jack aaudio over network"
 
     def add_subparser(self):
-        self.parser.add_argument('-p', '--port', 
-                help="UDP port to listen on (default: {DEFAULT_PORT_FOR_MIDI})", 
+        self.parser.add_argument('-p', '--port',
+                help="UDP port to listen on (default: {DEFAULT_PORT_FOR_MIDI})",
                 default=DEFAULT_PORT_FOR_MIDI)
-        self.parser.add_argument('-m', '--multicast', 
-                help="listen on multicast IP address", 
+        self.parser.add_argument('-m', '--multicast',
+                help="listen on multicast IP address",
                 default=DEFAULT_MULTICAST_ADDRESS)
 
     def run(self, args):
@@ -137,7 +140,6 @@ def run(raw_args=None):
             CommandMidiReceiver(subparsers)]:
         cmd_map[cmd.command] = cmd
 
-    #args = parser.parse_args()
     if raw_args:
         args = parser.parse_known_args(raw_args)
     else:
@@ -166,10 +168,6 @@ def run(raw_args=None):
         os.environ['PATH'] = f"{args[0].jack_client_lib_bin_path};{os.environ['PATH']}"
 
     cmd = cmd_map[args[0].command]
-#    if cmd.needs_subcmd and args[0].sub_cmd is None:
-#        cmd.parser.print_help()
-#        return
-#
     return cmd.run(args)
 
 if __name__ == "__main__":

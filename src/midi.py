@@ -10,19 +10,24 @@ import re
 
 from collections import defaultdict
 
-from common import DEFAULT_MULTICAST_ADDRESS, DEFAULT_PORT_FOR_MIDI, info, debug, error
+from common import DEFAULT_MULTICAST_ADDRESS
+from common import DEFAULT_PORT_FOR_MIDI, info, debug, error
 
 
 API_MAP = {
-        'alsa': rtmidi.API_LINUX_ALSA, 
-        'osx_core': rtmidi.API_MACOSX_CORE, 
-        'dummy': rtmidi.API_RTMIDI_DUMMY, 
-        'jack': rtmidi.API_UNIX_JACK, 
-        'unspecified': rtmidi.API_UNSPECIFIED, 
+        'alsa': rtmidi.API_LINUX_ALSA,
+        'osx_core': rtmidi.API_MACOSX_CORE,
+        'dummy': rtmidi.API_RTMIDI_DUMMY,
+        'jack': rtmidi.API_UNIX_JACK,
+        'unspecified': rtmidi.API_UNSPECIFIED,
         'windows': rtmidi.API_WINDOWS_MM}
 
+
 class JackCastMidiReceiver():
-    def __init__(self, multicast_group=DEFAULT_MULTICAST_ADDRESS, port=DEFAULT_PORT_FOR_MIDI):
+    def __init__(self,
+            multicast_group=DEFAULT_MULTICAST_ADDRESS,
+            port=DEFAULT_PORT_FOR_MIDI):
+
         self.multicast_group = multicast_group
         self.server_address = ('', port)
 
@@ -50,7 +55,6 @@ class JackCastMidiReceiver():
         data, address = self.sock.recvfrom(1024)
         (midi_msg, deltatime, src) = self.msg_scanner(data.decode('ascii'))
         debug(midi_msg, deltatime, src)
-        
         midi_outs_per_ip = self.midi_outs[address]
         if not src in  midi_outs_per_ip:
             midi_out = rtmidi.MidiOut(API_MAP['jack'])
@@ -60,10 +64,11 @@ class JackCastMidiReceiver():
             midi_out = midi_outs_per_ip[src]
 
         midi_out.send_message(midi_msg)
-    
+
     def run(self):
         while True:
             self.recv_midi()
+
 
 class JackCastMidiSender:
     class MidiInputHandler(object):
@@ -100,7 +105,6 @@ class JackCastMidiSender:
             midi_in.open_port(port)
             midi_in.set_callback(self.MidiInputHandler(self, name))
             midi_ins.append(midi_in)
-            
         while True:
             time.sleep(10)
             debug("wakeup")

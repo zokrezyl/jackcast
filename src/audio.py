@@ -6,19 +6,19 @@ import time
 
 import socket
 import struct
-import sys
-import hexdump
 
-from common import DEFAULT_MULTICAST_ADDRESS, DEFAULT_PORT_FOR_AUDIO, info, debug, error
+from common import DEFAULT_MULTICAST_ADDRESS, DEFAULT_PORT_FOR_AUDIO, debug
 
 
 class JackCastAudioReceiver():
-    def __init__(self, port = DEFAULT_PORT_FOR_AUDIO, multicast_group = DEFAULT_MULTICAST_ADDRESS, iface=None, no_multicast=False):
+    def __init__(self, port=DEFAULT_PORT_FOR_AUDIO,
+            multicast_group=DEFAULT_MULTICAST_ADDRESS,
+            iface=None, no_multicast=False):
+
         self.iface = iface  #TODO
-        self.no_multicast = no_multicast #TODO
+        self.no_multicast = no_multicast  #TODO
         self.port = port
         self.multicast_group = multicast_group
-    
         server_address = ('', self.port)
 
         # Create the socket
@@ -55,23 +55,16 @@ class JackCastAudioReceiver():
             header = data[:self.header_len]
             debug("callback...", frames, self.queue.qsize(), (time_here - self.prev_time_here)/1000000)
             (time_should, time_there, counter, payload_per_port_size, num_ports) = struct.unpack('qqqii', header)
-            td1 = (time_there - time_here)/ 1000000
-            td2 = (time_there - time_should)/ 1000000
-            td3 = (time_here - time_should)/ 1000000
             lat_here = (time_here - self.prev_time_here)/1000000
             payload = data[self.header_len:]
-            debug(f"d there here: {td1}, d there should {td2}, d here should {td3}, latency {self.latency}, latency {lat_here} payload {len(payload)}")
             for i in range(num_ports):
                 start = payload_per_port_size * i
-                end   = payload_per_port_size * (i + 1)
-                #self.client.outports[i].get_buffer()[:payload_per_port_size] = payload[start:end]
+                end = payload_per_port_size * (i + 1)
                 self.client.outports[i].get_buffer()[:payload_per_port_size] = payload[start:end]
-            #@hexdump.hexdump(payload)
             self.prev_time_here = time_here
-                
+
 
     def process(self):
-        snd_rcv_time_diff = 0
         last_diffs = []
         debug(self)
         debug("process thread")
@@ -98,8 +91,6 @@ class JackCastAudioReceiver():
                 debug("counter error", counter, prev_counter)
             if time_should < prev_time_should:
                 debug("time error")
-     
-            #print((time_here - prev_time_here) / 10000000)
             diff = time_here - time_should
             last_diffs.append(diff)
             if len(last_diffs) > 10000:
@@ -109,30 +100,19 @@ class JackCastAudioReceiver():
             diff_ms = diff/(1000000)
             delta_should_ms = (time_should - prev_time_should) / 1000000
             target_diff_ms = snd_rcv_time_diff_ms
-            #time.sleep((target_diff - diff)/(1000 * 1000 * 1000))
-            #if diff_ms > 3:
-            #    print(diff_ms)
             diff_diff_ms = target_diff_ms - diff_ms
             if diff_diff_ms > 0:
-                td1 = (time_there - time_here)/ 1000000
-                td2 = (time_there - time_should)/ 1000000
-                td3 = (time_here - time_should)/ 1000000
-                lat_here = (prev_time_here - time_here)/1000000
-                #print(f"sleep: {diff_diff_ms}, delta_should {delta_should_ms}, diff {diff_ms}, diff_avg {snd_rcv_time_diff}, qsize {qsize}, latency {self.latency} {counter} {prev_counter}")
-                debug(f"sleep: {diff_diff_ms}, diff {diff_ms}ms, diff_avg {snd_rcv_time_diff_ms}, qsize {qsize}, d there here: {td1}, d there should {td2}, d here should {td3}, latency {self.latency}, {lat_here}")
                 time.sleep((diff_diff_ms)/1000)
             else:
                 debug(f"no sleep: {diff_diff_ms}, diff {diff_ms}ms, diff_avg {snd_rcv_time_diff_ms}, qsize {qsize}")
             payload = data[self.header_len:]
             if(payload_per_port_size) != int(len(payload)/num_ports):
                 debug("payload problem!!!")
-            len_out_buffer = len(self.client.outports[0].get_buffer())
             for i in range(num_ports):
                 start = payload_per_port_size * i
                 end   = payload_per_port_size * (i + 1)
                 self.client.outports[i].get_buffer()[:payload_per_port_size] = payload[start:end]
 
-            #print((time_here - prev_time_here)/1000000)
             prev_time_here = time_here
             prev_time_should = time_should
             prev_counter = counter
@@ -141,7 +121,6 @@ class JackCastAudioReceiver():
 
     def run(self):
         self.queue = queue.Queue()
-        #threading.Thread(target=self.process).start()
 
         event = threading.Event()
         with self.client:
@@ -171,23 +150,27 @@ class JackCastAudioSender:
             sent_time = time.time_ns()
             should_time = int(self.counter * self.latency * 1000000 + self.start_time)
             assert frames == self.client.blocksize
-            #print("process")
+            # print("process")
             num_ports = 2
             out_buf = bytes()
             bs = self.client.blocksize
-            for i in range(2):
+            for i in range(2): 
+                # we have float32  samples, thus 4 times the number of samples
                 buf = self.client.inports[i].get_buffer()[:bs*4]
                 out_buf += buf
-            out_buf = struct.pack(f"qqqii", should_time, sent_time, self.counter, bs*4, num_ports) + out_buf
-            #print(f"jbs: {bs*4}, lb: {len(out_buf)}")
+            out_buf = struct.pack(
+                    "qqqii",
+                    should_time,
+                    sent_time,
+                    self.counter,
+                    bs*4,
+                    num_ports) + out_buf
             sent = self.sock.sendto(out_buf, self.multicast_group_pair)
             delta_ms = (sent_time - self.last_sent_time)/1000000
-            #print(delta_ms, self.latency, self.client.blocksize, self.client.samplerate)
-            if delta_ms > self.latency * 1.5 :
+            if delta_ms > self.latency * 1.5:
                 debug(f"poz latency issue, got: {delta_ms}, expected: {self.latency}")
-            if delta_ms <  self.latency * 0.5 :
+            if delta_ms <  self.latency * 0.5:
                 debug(f"neg latency issue, got: {delta_ms}, expected: {self.latency}")
-            #print(delta_ms, (should_time - sent_time) / 1000000)
             self.last_sent_time = sent_time
             self.counter += 1
 
