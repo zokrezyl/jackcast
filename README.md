@@ -48,6 +48,8 @@ Please read the story to understand the limitations of the existing tools and wh
 ### Linux
 
 ### Windows
+* The latest (atm of writing) of jack client for windows is crashing (https://github.com/jackaudio/jack2/releases/download/v1.9.14/v1.9.14.tar.gz)
+* I found a working in https://users.notam02.no/~kjetism/radium/index.php and uploaded only the libs to https://github.com/zokrezyl/jack-audio-win-client-lib
 
 
 ## Usage
