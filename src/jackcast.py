@@ -163,8 +163,7 @@ def run(raw_args=None):
 
     if args[0].jack_client_lib_bin_path:
         print('urraa..')
-    print(os.environ['PATH'])
-    os.environ['PATH'] = f"{args[0].jack_client_lib_bin_path};{os.environ['PATH']}"
+        os.environ['PATH'] = f"{args[0].jack_client_lib_bin_path};{os.environ['PATH']}"
 
     cmd = cmd_map[args[0].command]
 #    if cmd.needs_subcmd and args[0].sub_cmd is None:
