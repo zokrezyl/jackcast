@@ -1,8 +1,11 @@
-# Jack Cast, the storry
+# Jack Cast
 
 A simple tool to transmit Jack audio and Midi over the network.
-
 The tool is still under work, but already solves it's original purposes
+
+# the storry
+
+
 
 ## Why a new tool or why reinventing the wheel?
 
