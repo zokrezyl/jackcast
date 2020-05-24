@@ -9,12 +9,11 @@ import struct
 import sys
 import hexdump
 
-from common import DEFAULT_MULTICAST_ADDRESS, info, debug, error
+from common import DEFAULT_MULTICAST_ADDRESS, DEFAULT_PORT_FOR_AUDIO, info, debug, error
 
-DEFAULT_PORT_FOR_AUDIO = 33220
 
 class JackCastAudioReceiver():
-    def __init__(self, port = 33220, multicast_group = DEFAULT_MULTICAST_ADDRESS, iface=None, no_multicast=False):
+    def __init__(self, port = DEFAULT_PORT_FOR_AUDIO, multicast_group = DEFAULT_MULTICAST_ADDRESS, iface=None, no_multicast=False):
         self.iface = iface  #TODO
         self.no_multicast = no_multicast #TODO
         self.port = port

@@ -10,9 +10,8 @@ import re
 
 from collections import defaultdict
 
-from common import DEFAULT_MULTICAST_ADDRESS, info, debug, error
+from common import DEFAULT_MULTICAST_ADDRESS, DEFAULT_PORT_FOR_MIDI, info, debug, error
 
-DEFAULT_PORT_FOR_MIDI = 33221
 
 API_MAP = {
         'alsa': rtmidi.API_LINUX_ALSA, 

@@ -3,14 +3,10 @@
 import argparse
 import logging
 import sys
-import getpass
-import subprocess
 import os
 import re
 
-from common import DEFAULT_MULTICAST_ADDRESS
-from audio import JackCastAudioSender, JackCastAudioReceiver, DEFAULT_PORT_FOR_AUDIO
-from midi import JackCastMidiSender, JackCastMidiReceiver, DEFAULT_PORT_FOR_MIDI
+from common import DEFAULT_MULTICAST_ADDRESS, DEFAULT_PORT_FOR_AUDIO, DEFAULT_PORT_FOR_MIDI
 
 
 def lowercase(string):
@@ -60,6 +56,7 @@ class CommandAudioSender(Command):
                 default=DEFAULT_MULTICAST_ADDRESS)
 
     def run(self, args):
+        from audio import JackCastAudioSender
         JackCastAudioSender().run()
 
 
@@ -80,6 +77,7 @@ class CommandAudioReceiver(Command):
                 default=DEFAULT_MULTICAST_ADDRESS)
 
     def run(self, args):
+        from audio import JackCastAudioReceiver
         JackCastAudioReceiver().run()
 
 
@@ -98,6 +96,7 @@ class CommandMidiSender(Command):
                 default=DEFAULT_MULTICAST_ADDRESS)
 
     def run(self, args):
+        from midi import JackCastMidiSender
         JackCastMidiSender().run()
 
 class CommandMidiReceiver(Command):
@@ -113,6 +112,7 @@ class CommandMidiReceiver(Command):
                 default=DEFAULT_MULTICAST_ADDRESS)
 
     def run(self, args):
+        from midi import JackCastMidiReceiver
         JackCastMidiReceiver().run()
 
 def run(raw_args=None):
@@ -124,6 +124,8 @@ def run(raw_args=None):
     parser.add_argument('--log-level',
                         choices=['debug', 'info', 'warn', 'error', 'fatal'],
                         default='info')
+    parser.add_argument('-j', '--jack-client-lib-bin-path',
+                        help="where to search for the jack client lib binaries")
 
     subparsers = parser.add_subparsers(dest='command')
 
@@ -158,6 +160,11 @@ def run(raw_args=None):
     if args[0].command is None:
         parser.print_help()
         return 1
+
+    if args[0].jack_client_lib_bin_path:
+        print('urraa..')
+    print(os.environ['PATH'])
+    os.environ['PATH'] = f"{args[0].jack_client_lib_bin_path};{os.environ['PATH']}"
 
     cmd = cmd_map[args[0].command]
 #    if cmd.needs_subcmd and args[0].sub_cmd is None:
