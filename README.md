@@ -1,8 +1,11 @@
-# Jack Cast, the storry
+# Jack Cast
 
 A simple tool to transmit Jack audio and Midi over the network.
-
 The tool is still under work, but already solves it's original purposes
+
+# The storry
+
+
 
 ## Why a new tool or why reinventing the wheel?
 
@@ -45,6 +48,8 @@ Please read the story to understand the limitations of the existing tools and wh
 ### Linux
 
 ### Windows
+* The latest (atm of writing) of jack client for windows is crashing (https://github.com/jackaudio/jack2/releases/download/v1.9.14/v1.9.14.tar.gz)
+* I found a working in https://users.notam02.no/~kjetism/radium/index.php and uploaded only the libs to https://github.com/zokrezyl/jack-audio-win-client-lib
 
 
 ## Usage
